@@ -8,6 +8,8 @@ import ShopManager from './ShopManager'
 import BalanceManager from './BalanceManager'
 import PurchaseApprovals from './PurchaseApprovals'
 import ThemeSettings from './ThemeSettings'
+import WordListManager from './WordListManager'
+import GameSettings from './GameSettings'
 import CoinIcon from '../common/CoinIcon'
 
 const TABS = [
@@ -15,6 +17,7 @@ const TABS = [
   { label: 'Shop', icon: '🛍️' },
   { label: 'Balance', icon: null },
   { label: 'Approvals', icon: '📬' },
+  { label: 'Words', icon: '🔤' },
   { label: 'Settings', icon: '⚙️' },
 ]
 
@@ -35,7 +38,8 @@ export default function ParentHome() {
     <ShopManager key="shop" />,
     <BalanceManager key="balance" />,
     <PurchaseApprovals key="approvals" />,
-    <ThemeSettings key="settings" />,
+    <WordListManager key="words" />,
+    <div key="settings"><ThemeSettings /><GameSettings /></div>,
   ]
 
   return (

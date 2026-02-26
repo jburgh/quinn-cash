@@ -1,6 +1,15 @@
 import { useState, useEffect } from 'react'
 import { db } from '../../firebase/config'
-import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore'
+import {
+  collection,
+  query,
+  where,
+  onSnapshot,
+  orderBy,
+  doc,
+  getDoc,
+  updateDoc,
+} from 'firebase/firestore'
 import { useApp } from '../../contexts/AppContext'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme } from '../../contexts/ThemeContext'
@@ -10,6 +19,7 @@ import TrophyCase from './TrophyCase'
 import PINModal from '../parent/PINModal'
 import PINSetup from '../parent/PINSetup'
 import EmptyState from '../common/EmptyState'
+import SpellGame from './SpellGame'
 
 export default function KidHome() {
   const { balance, userData } = useApp()
@@ -25,6 +35,10 @@ export default function KidHome() {
   const [selectedPrize, setSelectedPrize] = useState(null)
   const [showPINModal, setShowPINModal] = useState(false)
   const [showPINSetup, setShowPINSetup] = useState(false)
+  const [showGame, setShowGame] = useState(false)
+  const [bonusMode, setBonusMode] = useState(false)
+  const [capReached, setCapReached] = useState(false)
+  const [hasActiveWords, setHasActiveWords] = useState(false)
 
   useEffect(() => {
     const q = query(
@@ -52,12 +66,59 @@ export default function KidHome() {
     return unsub
   }, [user])
 
+  // Watch for active words
+  useEffect(() => {
+    const q = query(collection(db, 'wordList'), where('active', '==', true))
+    const unsub = onSnapshot(q, (snap) => setHasActiveWords(snap.size > 0))
+    return unsub
+  }, [])
+
+  // Watch daily cap
+  useEffect(() => {
+    if (!user) return
+    const today = new Date().toISOString().split('T')[0]
+    const earningsId = `${user.uid}_${today}`
+
+    const earningsUnsub = onSnapshot(doc(db, 'gameEarnings', earningsId), async (earningsSnap) => {
+      const totalEarned = earningsSnap.exists() ? (earningsSnap.data().totalEarned || 0) : 0
+      try {
+        const settingsSnap = await getDoc(doc(db, 'gameSettings', 'default'))
+        const dailyCap = settingsSnap.exists() ? (settingsSnap.data().dailyCap || 5) : 5
+        setCapReached(totalEarned >= dailyCap)
+      } catch {
+        setCapReached(false)
+      }
+    })
+    return earningsUnsub
+  }, [user])
+
+  // Watch bonus session trigger
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, 'bonusSessionTrigger', 'global'), async (snap) => {
+      if (snap.exists() && snap.data().triggered === true) {
+        await updateDoc(doc(db, 'bonusSessionTrigger', 'global'), { triggered: false })
+        setBonusMode(true)
+        setShowGame(true)
+      }
+    })
+    return unsub
+  }, [])
+
+  const handleGameClose = () => {
+    setShowGame(false)
+    setBonusMode(false)
+  }
+
   const handleParentButton = () => {
     if (!userData?.pin) {
       setShowPINSetup(true)
     } else {
       setShowPINModal(true)
     }
+  }
+
+  if (showGame) {
+    return <SpellGame bonusMode={bonusMode} onClose={handleGameClose} />
   }
 
   return (
@@ -101,6 +162,32 @@ export default function KidHome() {
       <div className="flex-1 overflow-y-auto">
         {tab === 0 ? (
           <div className="p-4 pb-8">
+            {/* Spell It! game button — top of store */}
+            <div className="mb-4">
+              {!hasActiveWords ? (
+                <button
+                  disabled
+                  className="w-full bg-gray-100 text-gray-400 font-display text-xl py-5 rounded-2xl cursor-not-allowed"
+                >
+                  Ask Mom or Dad to add words! 📚
+                </button>
+              ) : capReached ? (
+                <button
+                  disabled
+                  className="w-full bg-gray-100 text-gray-400 font-display text-xl py-5 rounded-2xl cursor-not-allowed"
+                >
+                  Come back tomorrow! ⭐
+                </button>
+              ) : (
+                <button
+                  onClick={() => setShowGame(true)}
+                  className="w-full bg-quinn-teal text-white font-display text-xl py-5 rounded-2xl active:scale-95 transition-all shadow-lg shadow-teal-200"
+                >
+                  Earn More 🎮
+                </button>
+              )}
+            </div>
+
             {loadingPrizes ? (
               <div className="flex justify-center py-16"><LoadingDeco /></div>
             ) : prizes.length === 0 ? (
@@ -122,21 +209,6 @@ export default function KidHome() {
                 ))}
               </div>
             )}
-
-            {/* Phase 2 Placeholder */}
-            <div className="mt-6 relative">
-              <button
-                disabled
-                className="w-full bg-gray-100 text-gray-300 font-display text-xl py-5 rounded-2xl cursor-not-allowed"
-              >
-                Earn More 🎮
-              </button>
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <span className="bg-gray-200 text-gray-500 font-body text-xs font-bold px-3 py-1 rounded-full">
-                  Coming soon!
-                </span>
-              </div>
-            </div>
           </div>
         ) : (
           <TrophyCase />

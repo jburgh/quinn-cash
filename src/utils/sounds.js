@@ -65,3 +65,11 @@ export function playError() {
   playTone(220, 0.4, 'sawtooth', 0.22)
   playTone(180, 0.3, 'sawtooth', 0.18, 0.15)
 }
+
+export function playLetterCorrect() {
+  playTone(880, 0.12, 'sine', 0.22)
+}
+
+export function playLetterIncorrect() {
+  playTone(200, 0.15, 'sawtooth', 0.18)
+}

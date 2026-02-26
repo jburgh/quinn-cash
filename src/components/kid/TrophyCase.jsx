@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react'
 import { db } from '../../firebase/config'
 import { collection, query, orderBy, onSnapshot } from 'firebase/firestore'
+import { useTheme } from '../../contexts/ThemeContext'
 import EmptyState from '../common/EmptyState'
-import CoinIcon from '../common/CoinIcon'
 
 export default function TrophyCase() {
+  const { theme } = useTheme()
+  const LoadingDeco = theme.LoadingDecoration
+  const CurrencyIcon = theme.CurrencyIcon
   const [history, setHistory] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -19,7 +22,7 @@ export default function TrophyCase() {
 
   if (loading) {
     return (
-      <div className="flex justify-center py-16 animate-bounce-slow"><CoinIcon size="xl" /></div>
+      <div className="flex justify-center py-16"><LoadingDeco /></div>
     )
   }
 
@@ -67,7 +70,7 @@ export default function TrophyCase() {
               </p>
             </div>
             <p className="font-display text-quinn-orange text-lg flex-shrink-0 flex items-center gap-1">
-              <CoinIcon size="sm" /> {item.price}
+              <CurrencyIcon size="sm" /> {item.price}
             </p>
           </div>
         )

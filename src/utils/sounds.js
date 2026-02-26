@@ -47,6 +47,12 @@ export function playApprove() {
   playTone(1047, 0.3, 'sine', 0.28, 0.24)
 }
 
+export function playGoal() {
+  // 5-note triumphant fanfare ascending — feels like a goal horn
+  const notes = [523, 659, 784, 1047, 1319]
+  notes.forEach((freq, i) => playTone(freq, 0.3, 'sine', 0.28, i * 0.12))
+}
+
 export function playDecline() {
   playTone(300, 0.4, 'sawtooth', 0.2)
 }

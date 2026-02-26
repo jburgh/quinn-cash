@@ -17,6 +17,8 @@ export default {
           teal: '#0D9488',
           'teal-light': '#14B8A6',
           'teal-dark': '#0F766E',
+          grass: '#16A34A',
+          gold: '#F59E0B',
         },
       },
       fontFamily: {
@@ -27,9 +29,14 @@ export default {
         'bounce-slow': 'bounce 2s infinite',
         'pulse-fast': 'pulse 1s infinite',
         'spin-slow': 'spin 3s linear infinite',
+        'spin-ball': 'spin 4s linear infinite',
         'wiggle': 'wiggle 0.5s ease-in-out',
+        'wiggle-loop': 'wiggle 1.2s ease-in-out infinite',
         'pop': 'pop 0.3s ease-out',
         'coin-revoke': 'coinRevoke 0.4s ease-out forwards',
+        'float': 'float 3s ease-in-out infinite',
+        'float-delay': 'float 3s ease-in-out 1.5s infinite',
+        'score-pop': 'scorePop 0.4s ease-out',
       },
       keyframes: {
         wiggle: {
@@ -45,6 +52,15 @@ export default {
           '0%': { transform: 'scale(1)', opacity: '1' },
           '50%': { transform: 'scale(1.2)', opacity: '0.5' },
           '100%': { transform: 'scale(0.85)', opacity: '0.35' },
+        },
+        float: {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-12px)' },
+        },
+        scorePop: {
+          '0%': { transform: 'scale(1)' },
+          '50%': { transform: 'scale(1.3)' },
+          '100%': { transform: 'scale(1)' },
         },
       },
     },

@@ -27,3 +27,14 @@ body {
 .pb-safe-bottom {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
+
+/* Soccer theme: alternating field stripes */
+.soccer-field-bg {
+  background: repeating-linear-gradient(
+    to bottom,
+    #f0fdf4 0px,
+    #f0fdf4 56px,
+    #dcfce7 56px,
+    #dcfce7 112px
+  );
+}

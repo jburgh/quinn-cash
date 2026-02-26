@@ -3,13 +3,15 @@ import { db } from '../../firebase/config'
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { useAuth } from '../../contexts/AuthContext'
 import { useApp } from '../../contexts/AppContext'
+import { useTheme } from '../../contexts/ThemeContext'
 import { playPrizeRequest } from '../../utils/sounds'
-import CoinIcon from '../common/CoinIcon'
 import toast from 'react-hot-toast'
 
 export default function PrizeDetail({ prize, onClose }) {
   const { user } = useAuth()
   const { balance } = useApp()
+  const { theme } = useTheme()
+  const CurrencyIcon = theme.CurrencyIcon
   const [loading, setLoading] = useState(false)
   const [requested, setRequested] = useState(false)
 
@@ -62,7 +64,7 @@ export default function PrizeDetail({ prize, onClose }) {
 
         {/* Price */}
         <div className="flex items-center justify-center gap-2 mb-1">
-          <CoinIcon size="md" />
+          <CurrencyIcon size="md" />
           <span className="font-display text-quinn-orange text-2xl">{prize.price}</span>
         </div>
 
@@ -83,7 +85,7 @@ export default function PrizeDetail({ prize, onClose }) {
               {/* Balance */}
               <div className="flex flex-col items-center gap-1">
                 <div className="flex items-center gap-1">
-                  <CoinIcon size="sm" />
+                  <CurrencyIcon size="sm" />
                   <span className="font-display text-3xl text-gray-800">{balance}</span>
                 </div>
                 <span className="font-body text-xs text-gray-400">you have</span>
@@ -94,7 +96,7 @@ export default function PrizeDetail({ prize, onClose }) {
               {/* Price */}
               <div className="flex flex-col items-center gap-1">
                 <div className="flex items-center gap-1">
-                  <CoinIcon size="sm" />
+                  <CurrencyIcon size="sm" />
                   <span className="font-display text-3xl text-gray-800">{prize.price}</span>
                 </div>
                 <span className="font-body text-xs text-gray-400">this costs</span>
@@ -105,7 +107,7 @@ export default function PrizeDetail({ prize, onClose }) {
               {/* Result */}
               <div className="flex flex-col items-center gap-1">
                 <div className="flex items-center gap-1">
-                  <CoinIcon size="sm" />
+                  <CurrencyIcon size="sm" />
                   <span className={`font-display text-3xl ${canAfford ? 'text-green-500' : 'text-red-400'}`}>
                     {diff}
                   </span>
@@ -132,11 +134,11 @@ export default function PrizeDetail({ prize, onClose }) {
             disabled={loading}
             className="w-full bg-quinn-orange hover:bg-quinn-orange-dark text-white font-display text-2xl py-5 rounded-2xl active:scale-95 transition-all disabled:opacity-50 shadow-lg shadow-orange-200"
           >
-            {loading ? '...' : 'I want this! 🙋'}
+            {loading ? '...' : theme.requestLabel}
           </button>
         ) : (
           <div className="w-full bg-gray-100 border-2 border-dashed border-gray-300 rounded-2xl py-5 text-center">
-            <p className="font-display text-gray-400 text-xl">Keep saving! 💪</p>
+            <p className="font-display text-gray-400 text-xl">{theme.cantAffordLabel}</p>
             <p className="font-body text-gray-400 text-sm mt-1">
               You need ${diff} more Quinn Cash
             </p>

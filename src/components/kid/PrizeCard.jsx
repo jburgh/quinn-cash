@@ -1,13 +1,15 @@
-import CoinIcon from '../common/CoinIcon'
+import { useTheme } from '../../contexts/ThemeContext'
 
 export default function PrizeCard({ prize, balance, onTap }) {
+  const { theme } = useTheme()
+  const CurrencyIcon = theme.CurrencyIcon
   const canAfford = balance >= prize.price
   const diff = Math.abs(balance - prize.price)
 
   return (
     <button
       onClick={() => onTap(prize)}
-      className="bg-white rounded-3xl shadow-md overflow-hidden active:scale-95 transition-transform text-left w-full"
+      className={`bg-white rounded-3xl shadow-md overflow-hidden active:scale-95 transition-transform text-left w-full ${canAfford ? theme.affordableRing : ''}`}
     >
       {/* Image */}
       <div className="aspect-square bg-gray-100 relative overflow-hidden">
@@ -23,7 +25,7 @@ export default function PrizeCard({ prize, balance, onTap }) {
         )}
         {prize.type === 'experience' && (
           <div className="absolute top-2 right-2 bg-quinn-teal text-white text-xs font-body font-bold px-2 py-0.5 rounded-full">
-            ✨ Again!
+            {theme.experienceBadge}
           </div>
         )}
       </div>
@@ -34,7 +36,7 @@ export default function PrizeCard({ prize, balance, onTap }) {
           {prize.name}
         </p>
         <div className="flex items-center gap-1.5 mb-1">
-          <CoinIcon size="sm" />
+          <CurrencyIcon size="sm" />
           <span className="font-display text-quinn-orange text-xl">{prize.price}</span>
         </div>
         <p

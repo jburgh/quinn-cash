@@ -7,6 +7,7 @@ import TonightSession from './TonightSession'
 import ShopManager from './ShopManager'
 import BalanceManager from './BalanceManager'
 import PurchaseApprovals from './PurchaseApprovals'
+import ThemeSettings from './ThemeSettings'
 import CoinIcon from '../common/CoinIcon'
 
 const TABS = [
@@ -14,6 +15,7 @@ const TABS = [
   { label: 'Shop', icon: '🛍️' },
   { label: 'Balance', icon: null },
   { label: 'Approvals', icon: '📬' },
+  { label: 'Settings', icon: '⚙️' },
 ]
 
 export default function ParentHome() {
@@ -33,6 +35,7 @@ export default function ParentHome() {
     <ShopManager key="shop" />,
     <BalanceManager key="balance" />,
     <PurchaseApprovals key="approvals" />,
+    <ThemeSettings key="settings" />,
   ]
 
   return (

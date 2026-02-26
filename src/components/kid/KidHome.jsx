@@ -2,16 +2,20 @@ import { useState, useEffect } from 'react'
 import { db } from '../../firebase/config'
 import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore'
 import { useApp } from '../../contexts/AppContext'
+import { useTheme } from '../../contexts/ThemeContext'
 import PrizeCard from './PrizeCard'
 import PrizeDetail from './PrizeDetail'
 import TrophyCase from './TrophyCase'
 import PINModal from '../parent/PINModal'
 import PINSetup from '../parent/PINSetup'
 import EmptyState from '../common/EmptyState'
-import CoinIcon from '../common/CoinIcon'
 
 export default function KidHome() {
   const { balance, userData } = useApp()
+  const { theme } = useTheme()
+  const HeaderDeco = theme.HeaderDecoration
+  const LoadingDeco = theme.LoadingDecoration
+  const CurrencyIcon = theme.CurrencyIcon
   const [tab, setTab] = useState(0)
   const [prizes, setPrizes] = useState([])
   const [loadingPrizes, setLoadingPrizes] = useState(true)
@@ -41,14 +45,15 @@ export default function KidHome() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex flex-col">
+    <div className={`min-h-screen ${theme.pageBg} flex flex-col`}>
       {/* Header */}
-      <div className="bg-quinn-blue text-white pt-safe-top">
+      <div className={`${theme.headerBg} text-white pt-safe-top relative`}>
+        {HeaderDeco && <HeaderDeco />}
         <div className="flex items-center justify-between px-5 pt-5 pb-2">
           <div>
-            <p className="font-body text-blue-200 text-sm">Quinn's Balance</p>
+            <p className={theme.balanceLabelClass}>{theme.balanceLabel}</p>
             <div className="flex items-center gap-3 mt-1">
-              <CoinIcon size="xl" />
+              <CurrencyIcon size="xl" />
               <span className="font-display text-6xl leading-none">{balance}</span>
             </div>
           </div>
@@ -62,14 +67,12 @@ export default function KidHome() {
 
         {/* Tabs */}
         <div className="flex px-4 mt-3 gap-1">
-          {['🛒 Store', '🏆 Trophy Case'].map((t, i) => (
+          {[theme.storeTab, theme.trophyTab].map((t, i) => (
             <button
               key={i}
               onClick={() => setTab(i)}
               className={`flex-1 py-3 font-body font-bold text-sm rounded-t-2xl transition-all ${
-                tab === i
-                  ? 'bg-blue-50 text-quinn-blue'
-                  : 'text-blue-200 hover:text-white'
+                tab === i ? theme.tabActive : theme.tabInactive
               }`}
             >
               {t}
@@ -83,7 +86,7 @@ export default function KidHome() {
         {tab === 0 ? (
           <div className="p-4 pb-8">
             {loadingPrizes ? (
-              <div className="flex justify-center py-16 animate-bounce-slow"><CoinIcon size="xl" /></div>
+              <div className="flex justify-center py-16"><LoadingDeco /></div>
             ) : prizes.length === 0 ? (
               <EmptyState
                 emoji="🎁"

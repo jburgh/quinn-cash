@@ -11,9 +11,10 @@ import {
   increment,
 } from 'firebase/firestore'
 import { useAuth } from '../../contexts/AuthContext'
+import { useTheme } from '../../contexts/ThemeContext'
 import CoinIcon from '../common/CoinIcon'
 import confetti from 'canvas-confetti'
-import { playBankIt, playCoinRevoke } from '../../utils/sounds'
+import { playCoinRevoke } from '../../utils/sounds'
 import toast from 'react-hot-toast'
 
 const TOTAL_COINS = 3
@@ -24,6 +25,9 @@ function getTodayKey() {
 
 export default function TonightSession() {
   const { user } = useAuth()
+  const { theme } = useTheme()
+  const SessionDeco = theme.SessionDecoration
+  const CurrencyIcon = theme.CurrencyIcon
   const [session, setSession] = useState(null)
   const [loading, setLoading] = useState(true)
   const [banking, setBanking] = useState(false)
@@ -107,7 +111,7 @@ export default function TonightSession() {
         particleCount: 160,
         spread: 80,
         origin: { y: 0.6 },
-        colors: ['#2563EB', '#F97316', '#0D9488', '#FCD34D', '#EC4899'],
+        colors: theme.confettiColors,
       })
       setTimeout(
         () =>
@@ -115,12 +119,12 @@ export default function TonightSession() {
             particleCount: 80,
             spread: 110,
             origin: { y: 0.45 },
-            colors: ['#2563EB', '#F97316', '#0D9488'],
+            colors: theme.confettiColors,
           }),
         350
       )
 
-      playBankIt()
+      theme.bankSound()
       toast.success(`Quinn earned ${remaining} Quinn Cash tonight! 🎉`, {
         duration: 5000,
         style: { fontSize: '16px' },
@@ -164,11 +168,11 @@ export default function TonightSession() {
 
       {isBanked ? (
         <div className="text-center py-8">
-          <div className="text-7xl mb-5 animate-bounce-slow">🎉</div>
-          <h3 className="font-display text-3xl text-quinn-teal mb-3">Session Banked!</h3>
+          <div className="text-7xl mb-5 animate-bounce-slow">{theme.celebrationEmoji}</div>
+          <h3 className="font-display text-3xl text-quinn-teal mb-3">{theme.celebrationTitle}</h3>
           <p className="font-body text-gray-500 text-lg mb-2">
             Quinn earned{' '}
-            <span className="font-bold text-quinn-orange inline-flex items-center gap-1"><CoinIcon size="sm" /> {session.coinsBanked}</span> Quinn Cash
+            <span className="font-bold text-quinn-orange inline-flex items-center gap-1"><CurrencyIcon size="sm" /> {session.coinsBanked}</span> Quinn Cash
             tonight!
           </p>
           <p className="font-body text-gray-400 text-sm mb-8">
@@ -183,6 +187,9 @@ export default function TonightSession() {
         </div>
       ) : (
         <>
+          {/* Session decoration (e.g. goal post in soccer theme) */}
+          {SessionDeco && <SessionDeco />}
+
           {/* Coins */}
           <div className="flex justify-center gap-5 mb-6">
             {Array.from({ length: TOTAL_COINS }).map((_, i) => {
@@ -192,13 +199,13 @@ export default function TonightSession() {
                   key={i}
                   onClick={() => toggleCoin(i)}
                   className={`transition-all active:scale-90 select-none rounded-full ${
-                    isRevoked ? 'opacity-40 grayscale' : ''
+                    isRevoked ? 'opacity-40 grayscale' : theme.coinActiveClass
                   }`}
                 >
                   {isRevoked ? (
                     <div className="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center text-3xl text-gray-500 shadow-sm">✕</div>
                   ) : (
-                    <CoinIcon size="2xl" />
+                    <CurrencyIcon size="2xl" />
                   )}
                 </button>
               )
@@ -222,7 +229,7 @@ export default function TonightSession() {
             disabled={banking}
             className="w-full bg-quinn-orange hover:bg-quinn-orange-dark text-white font-display text-3xl py-6 rounded-3xl active:scale-95 transition-all shadow-xl shadow-orange-200 disabled:opacity-50"
           >
-            {banking ? 'Banking...' : 'Bank It! 🎉'}
+            {banking ? 'Banking...' : theme.bankLabel}
           </button>
         </>
       )}

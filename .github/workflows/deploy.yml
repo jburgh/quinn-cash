@@ -3,7 +3,7 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
-  workflow_dispatch: # allow manual trigger from GitHub UI
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -15,12 +15,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  # Build job — no environment context, so repository secrets are fully accessible
+  build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -37,9 +34,7 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          # Base path matches the repo name so assets load correctly on GitHub Pages
-          VITE_BASE_PATH: "/${{ github.event.repository.name }}/"
-          # Firebase config — add these as repository secrets in GitHub
+          VITE_BASE_PATH: /quinn-cash/
           VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
           VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
           VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
@@ -55,6 +50,14 @@ jobs:
         with:
           path: dist
 
+  # Deploy job — separate so the environment context doesn't interfere with secrets
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

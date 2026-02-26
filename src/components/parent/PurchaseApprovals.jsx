@@ -15,6 +15,7 @@ import {
 import { useAuth } from '../../contexts/AuthContext'
 import { useApp } from '../../contexts/AppContext'
 import { playApprove, playDecline } from '../../utils/sounds'
+import CoinIcon from '../common/CoinIcon'
 import toast from 'react-hot-toast'
 import EmptyState from '../common/EmptyState'
 
@@ -40,7 +41,7 @@ export default function PurchaseApprovals() {
 
   const handleApprove = async (req) => {
     if (balance < req.prizePrice) {
-      toast.error(`Not enough Quinn Cash! Balance: 🪙 ${balance}, Price: 🪙 ${req.prizePrice}`)
+      toast.error(`Not enough Quinn Cash! Balance: ${balance}, Price: ${req.prizePrice}`)
       return
     }
     setProcessing(req.id)
@@ -139,15 +140,15 @@ export default function PurchaseApprovals() {
                     <p className="font-display text-gray-800 text-lg leading-tight">
                       {req.prizeName}
                     </p>
-                    <p className="font-body text-quinn-orange font-bold">🪙 {req.prizePrice}</p>
+                    <p className="font-body text-quinn-orange font-bold flex items-center gap-1"><CoinIcon size="xs" /> {req.prizePrice}</p>
                     <p
-                      className={`font-body text-xs mt-0.5 ${
+                      className={`font-body text-xs mt-0.5 flex items-center gap-1 ${
                         canAfford ? 'text-green-500' : 'text-red-400'
                       }`}
                     >
                       {canAfford
-                        ? `Balance: 🪙 ${balance} ✓`
-                        : `Needs 🪙 ${req.prizePrice - balance} more`}
+                        ? <><CoinIcon size="xs" /> {balance} ✓</>
+                        : <>Needs <CoinIcon size="xs" /> {req.prizePrice - balance} more</>}
                     </p>
                   </div>
                 </div>

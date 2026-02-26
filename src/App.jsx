@@ -4,6 +4,7 @@ import { useApp } from './contexts/AppContext'
 import Login from './components/auth/Login'
 import KidHome from './components/kid/KidHome'
 import ParentHome from './components/parent/ParentHome'
+import CoinIcon from './components/common/CoinIcon'
 
 function AppContent() {
   const { user } = useAuth()
@@ -14,7 +15,7 @@ function AppContent() {
   if (loadingData) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-quinn-blue">
-        <div className="text-7xl mb-4 animate-bounce-slow">🪙</div>
+        <CoinIcon size="xl" className="mb-4 animate-bounce-slow" />
         <p className="font-display text-2xl text-white">Loading...</p>
       </div>
     )

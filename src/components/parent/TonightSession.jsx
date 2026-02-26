@@ -11,6 +11,7 @@ import {
   increment,
 } from 'firebase/firestore'
 import { useAuth } from '../../contexts/AuthContext'
+import CoinIcon from '../common/CoinIcon'
 import confetti from 'canvas-confetti'
 import { playBankIt, playCoinRevoke } from '../../utils/sounds'
 import toast from 'react-hot-toast'
@@ -167,7 +168,7 @@ export default function TonightSession() {
           <h3 className="font-display text-3xl text-quinn-teal mb-3">Session Banked!</h3>
           <p className="font-body text-gray-500 text-lg mb-2">
             Quinn earned{' '}
-            <span className="font-bold text-quinn-orange">🪙 {session.coinsBanked}</span> Quinn Cash
+            <span className="font-bold text-quinn-orange inline-flex items-center gap-1"><CoinIcon size="sm" /> {session.coinsBanked}</span> Quinn Cash
             tonight!
           </p>
           <p className="font-body text-gray-400 text-sm mb-8">
@@ -190,13 +191,15 @@ export default function TonightSession() {
                 <button
                   key={i}
                   onClick={() => toggleCoin(i)}
-                  className={`w-24 h-24 rounded-full flex items-center justify-center text-4xl transition-all active:scale-90 shadow-lg select-none ${
-                    isRevoked
-                      ? 'bg-gray-200 opacity-40 grayscale shadow-none'
-                      : 'bg-gradient-to-br from-yellow-300 to-yellow-500 shadow-yellow-300'
+                  className={`transition-all active:scale-90 select-none rounded-full ${
+                    isRevoked ? 'opacity-40 grayscale' : ''
                   }`}
                 >
-                  {isRevoked ? '✕' : '🪙'}
+                  {isRevoked ? (
+                    <div className="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center text-3xl text-gray-500 shadow-sm">✕</div>
+                  ) : (
+                    <CoinIcon size="2xl" />
+                  )}
                 </button>
               )
             })}

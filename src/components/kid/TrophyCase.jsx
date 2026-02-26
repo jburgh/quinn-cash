@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { db } from '../../firebase/config'
 import { collection, query, orderBy, onSnapshot } from 'firebase/firestore'
 import EmptyState from '../common/EmptyState'
+import CoinIcon from '../common/CoinIcon'
 
 export default function TrophyCase() {
   const [history, setHistory] = useState([])
@@ -18,7 +19,7 @@ export default function TrophyCase() {
 
   if (loading) {
     return (
-      <div className="flex justify-center py-16 text-5xl animate-bounce-slow">🪙</div>
+      <div className="flex justify-center py-16 animate-bounce-slow"><CoinIcon size="xl" /></div>
     )
   }
 
@@ -65,8 +66,8 @@ export default function TrophyCase() {
                   : 'Recently'}
               </p>
             </div>
-            <p className="font-display text-quinn-orange text-lg flex-shrink-0">
-              🪙 {item.price}
+            <p className="font-display text-quinn-orange text-lg flex-shrink-0 flex items-center gap-1">
+              <CoinIcon size="sm" /> {item.price}
             </p>
           </div>
         )

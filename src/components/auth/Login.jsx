@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
+import CoinIcon from '../common/CoinIcon'
 
 export default function Login() {
   const { login } = useAuth()
@@ -24,7 +25,7 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-quinn-blue to-quinn-blue-dark flex flex-col items-center justify-center p-6">
       <div className="text-center mb-10">
-        <div className="text-8xl mb-4">🪙</div>
+        <CoinIcon size="xl" className="mb-4" />
         <h1 className="font-display text-5xl text-white mb-2">Quinn Cash</h1>
         <p className="font-body text-blue-200 text-lg">Your family reward store</p>
       </div>

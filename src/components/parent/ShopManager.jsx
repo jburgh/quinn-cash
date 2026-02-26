@@ -14,6 +14,7 @@ import {
 import { resizeImage } from '../../utils/imageUtils'
 import toast from 'react-hot-toast'
 import EmptyState from '../common/EmptyState'
+import CoinIcon from '../common/CoinIcon'
 
 function PrizeForm({ initial, onSave, onCancel }) {
   const [name, setName] = useState(initial?.name || '')
@@ -78,7 +79,7 @@ function PrizeForm({ initial, onSave, onCancel }) {
 
       <div className="flex gap-3">
         <div className="flex-1">
-          <label className="font-body text-sm font-bold text-gray-600 block mb-1">Price 🪙</label>
+          <label className="font-body text-sm font-bold text-gray-600 block mb-1 flex items-center gap-1">Price <CoinIcon size="xs" /></label>
           <input
             type="number"
             min="1"
@@ -242,8 +243,8 @@ export default function ShopManager() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-display text-gray-800 truncate">{prize.name}</p>
-                    <p className="font-body text-gray-400 text-sm">
-                      🪙 {prize.price} &middot; {prize.type}
+                    <p className="font-body text-gray-400 text-sm flex items-center gap-1">
+                      <CoinIcon size="xs" /> {prize.price} &middot; {prize.type}
                     </p>
                     {!prize.available && (
                       <span className="text-xs text-red-400 font-body font-bold">Sold out</span>

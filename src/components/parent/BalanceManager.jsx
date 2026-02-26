@@ -13,6 +13,7 @@ import {
 } from 'firebase/firestore'
 import { useAuth } from '../../contexts/AuthContext'
 import { useApp } from '../../contexts/AppContext'
+import CoinIcon from '../common/CoinIcon'
 import toast from 'react-hot-toast'
 
 export default function BalanceManager() {
@@ -70,7 +71,7 @@ export default function BalanceManager() {
       <div className="bg-gradient-to-r from-quinn-blue to-quinn-blue-dark rounded-2xl p-5 text-white mb-6 text-center shadow-lg">
         <p className="font-body text-blue-200 text-sm">Quinn's Current Balance</p>
         <div className="flex items-center justify-center gap-2 mt-1">
-          <span className="text-4xl">🪙</span>
+          <CoinIcon size="lg" />
           <span className="font-display text-6xl">{balance}</span>
         </div>
       </div>
@@ -100,8 +101,8 @@ export default function BalanceManager() {
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <label className="font-body text-sm font-bold text-gray-600 block mb-1">
-              Amount 🪙
+            <label className="font-body text-sm font-bold text-gray-600 flex items-center gap-1 mb-1">
+              Amount <CoinIcon size="xs" />
             </label>
             <input
               type="number"
@@ -178,7 +179,7 @@ export default function BalanceManager() {
                   }`}
                 >
                   {tx.amount > 0 ? '+' : ''}
-                  {tx.amount} 🪙
+                  <span className="inline-flex items-center gap-1">{tx.amount} <CoinIcon size="xs" /></span>
                 </span>
               </div>
             )

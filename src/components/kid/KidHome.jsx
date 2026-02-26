@@ -83,7 +83,7 @@ export default function KidHome() {
         {tab === 0 ? (
           <div className="p-4 pb-8">
             {loadingPrizes ? (
-              <div className="flex justify-center py-16 text-5xl animate-bounce-slow">🪙</div>
+              <div className="flex justify-center py-16 animate-bounce-slow"><CoinIcon size="xl" /></div>
             ) : prizes.length === 0 ? (
               <EmptyState
                 emoji="🎁"

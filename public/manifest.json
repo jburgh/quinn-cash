@@ -9,7 +9,7 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/coin.svg",
+      "src": "coin.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"

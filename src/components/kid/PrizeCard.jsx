@@ -1,6 +1,6 @@
 import { useTheme } from '../../contexts/ThemeContext'
 
-export default function PrizeCard({ prize, balance, onTap }) {
+export default function PrizeCard({ prize, balance, onTap, hasPending = false }) {
   const { theme } = useTheme()
   const CurrencyIcon = theme.CurrencyIcon
   const canAfford = balance >= prize.price
@@ -9,7 +9,7 @@ export default function PrizeCard({ prize, balance, onTap }) {
   return (
     <button
       onClick={() => onTap(prize)}
-      className={`bg-white rounded-3xl shadow-md overflow-hidden active:scale-95 transition-transform text-left w-full ${canAfford ? theme.affordableRing : ''}`}
+      className={`bg-white rounded-3xl shadow-md overflow-hidden active:scale-95 transition-transform text-left w-full ${canAfford && !hasPending ? theme.affordableRing : ''}`}
     >
       {/* Image */}
       <div className="aspect-square bg-gray-100 relative overflow-hidden">
@@ -23,7 +23,12 @@ export default function PrizeCard({ prize, balance, onTap }) {
         ) : (
           <div className="w-full h-full flex items-center justify-center text-5xl">🎁</div>
         )}
-        {prize.type === 'experience' && (
+        {hasPending && (
+          <div className="absolute top-2 left-2 bg-yellow-400 text-yellow-900 text-xs font-body font-bold px-2 py-0.5 rounded-full">
+            📬 Pending
+          </div>
+        )}
+        {prize.type === 'experience' && !hasPending && (
           <div className="absolute top-2 right-2 bg-quinn-teal text-white text-xs font-body font-bold px-2 py-0.5 rounded-full">
             {theme.experienceBadge}
           </div>
@@ -39,17 +44,17 @@ export default function PrizeCard({ prize, balance, onTap }) {
           <CurrencyIcon size="sm" />
           <span className="font-display text-quinn-orange text-xl">{prize.price}</span>
         </div>
-        <p
-          className={`font-body text-xs font-bold ${
-            canAfford ? 'text-green-500' : 'text-red-400'
-          }`}
-        >
-          {canAfford
-            ? diff === 0
-              ? 'Exact! 🎯'
-              : `$${diff} left after`
-            : `Need $${diff} more`}
-        </p>
+        {hasPending ? (
+          <p className="font-body text-xs font-bold text-yellow-600">Waiting for approval</p>
+        ) : (
+          <p className={`font-body text-xs font-bold ${canAfford ? 'text-green-500' : 'text-red-400'}`}>
+            {canAfford
+              ? diff === 0
+                ? 'Exact! 🎯'
+                : `${diff} left after`
+              : `Need ${diff} more`}
+          </p>
+        )}
       </div>
     </button>
   )

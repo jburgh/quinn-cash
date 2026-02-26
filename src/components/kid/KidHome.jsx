@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { db } from '../../firebase/config'
 import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore'
 import { useApp } from '../../contexts/AppContext'
+import { useAuth } from '../../contexts/AuthContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import PrizeCard from './PrizeCard'
 import PrizeDetail from './PrizeDetail'
@@ -12,6 +13,7 @@ import EmptyState from '../common/EmptyState'
 
 export default function KidHome() {
   const { balance, userData } = useApp()
+  const { user } = useAuth()
   const { theme } = useTheme()
   const HeaderDeco = theme.HeaderDecoration
   const LoadingDeco = theme.LoadingDecoration
@@ -19,6 +21,7 @@ export default function KidHome() {
   const [tab, setTab] = useState(0)
   const [prizes, setPrizes] = useState([])
   const [loadingPrizes, setLoadingPrizes] = useState(true)
+  const [pendingPrizeIds, setPendingPrizeIds] = useState(new Set())
   const [selectedPrize, setSelectedPrize] = useState(null)
   const [showPINModal, setShowPINModal] = useState(false)
   const [showPINSetup, setShowPINSetup] = useState(false)
@@ -35,6 +38,19 @@ export default function KidHome() {
     })
     return unsub
   }, [])
+
+  useEffect(() => {
+    if (!user) return
+    const q = query(
+      collection(db, 'purchaseRequests'),
+      where('status', '==', 'pending'),
+      where('userId', '==', user.uid)
+    )
+    const unsub = onSnapshot(q, (snap) => {
+      setPendingPrizeIds(new Set(snap.docs.map((d) => d.data().prizeId)))
+    })
+    return unsub
+  }, [user])
 
   const handleParentButton = () => {
     if (!userData?.pin) {
@@ -101,6 +117,7 @@ export default function KidHome() {
                     prize={prize}
                     balance={balance}
                     onTap={setSelectedPrize}
+                    hasPending={pendingPrizeIds.has(prize.id)}
                   />
                 ))}
               </div>
@@ -128,7 +145,11 @@ export default function KidHome() {
 
       {/* Modals */}
       {selectedPrize && (
-        <PrizeDetail prize={selectedPrize} onClose={() => setSelectedPrize(null)} />
+        <PrizeDetail
+          prize={selectedPrize}
+          onClose={() => setSelectedPrize(null)}
+          hasPending={pendingPrizeIds.has(selectedPrize.id)}
+        />
       )}
       {showPINModal && (
         <PINModal

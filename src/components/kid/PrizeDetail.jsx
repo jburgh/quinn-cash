@@ -7,7 +7,7 @@ import { useTheme } from '../../contexts/ThemeContext'
 import { playPrizeRequest } from '../../utils/sounds'
 import toast from 'react-hot-toast'
 
-export default function PrizeDetail({ prize, onClose }) {
+export default function PrizeDetail({ prize, onClose, hasPending = false }) {
   const { user } = useAuth()
   const { balance } = useApp()
   const { theme } = useTheme()
@@ -17,6 +17,7 @@ export default function PrizeDetail({ prize, onClose }) {
 
   const canAfford = balance >= prize.price
   const diff = Math.abs(balance - prize.price)
+  const isPending = hasPending || requested
 
   const handleRequest = async () => {
     if (!canAfford) return
@@ -48,9 +49,18 @@ export default function PrizeDetail({ prize, onClose }) {
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-t-3xl w-full max-w-lg p-6 pb-12 shadow-2xl animate-pop"
+        className="relative bg-white rounded-t-3xl w-full max-w-lg p-6 pb-12 shadow-2xl animate-pop"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* X close button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 active:scale-90 transition-all text-gray-500 text-lg font-bold"
+          aria-label="Close"
+        >
+          ✕
+        </button>
+
         {/* Image */}
         <div className="w-44 h-44 rounded-3xl overflow-hidden mx-auto mb-5 bg-gray-100 shadow-md">
           {prize.photoURL ? (
@@ -120,11 +130,11 @@ export default function PrizeDetail({ prize, onClose }) {
           </div>
         )}
 
-        {requested ? (
-          <div className="bg-green-50 border-2 border-green-200 rounded-2xl p-5 text-center">
+        {isPending ? (
+          <div className="bg-yellow-50 border-2 border-yellow-200 rounded-2xl p-5 text-center mb-3">
             <div className="text-4xl mb-2">📬</div>
-            <p className="font-display text-green-600 text-xl">Request sent!</p>
-            <p className="font-body text-green-500 text-sm mt-1">
+            <p className="font-display text-yellow-700 text-xl">Request pending!</p>
+            <p className="font-body text-yellow-600 text-sm mt-1">
               Waiting for Mom or Dad to approve...
             </p>
           </div>
@@ -132,24 +142,24 @@ export default function PrizeDetail({ prize, onClose }) {
           <button
             onClick={handleRequest}
             disabled={loading}
-            className="w-full bg-quinn-orange hover:bg-quinn-orange-dark text-white font-display text-2xl py-5 rounded-2xl active:scale-95 transition-all disabled:opacity-50 shadow-lg shadow-orange-200"
+            className="w-full bg-quinn-orange hover:bg-quinn-orange-dark text-white font-display text-2xl py-5 rounded-2xl active:scale-95 transition-all disabled:opacity-50 shadow-lg shadow-orange-200 mb-3"
           >
             {loading ? '...' : theme.requestLabel}
           </button>
         ) : (
-          <div className="w-full bg-gray-100 border-2 border-dashed border-gray-300 rounded-2xl py-5 text-center">
+          <div className="w-full bg-gray-100 border-2 border-dashed border-gray-300 rounded-2xl py-5 text-center mb-3">
             <p className="font-display text-gray-400 text-xl">{theme.cantAffordLabel}</p>
             <p className="font-body text-gray-400 text-sm mt-1">
-              You need ${diff} more Quinn Cash
+              You need {diff} more Quinn Cash
             </p>
           </div>
         )}
 
         <button
           onClick={onClose}
-          className="w-full mt-3 bg-quinn-blue hover:bg-quinn-blue-dark text-white font-display text-2xl py-4 rounded-2xl active:scale-95 transition-all shadow-md"
+          className="w-full bg-quinn-blue hover:bg-quinn-blue-dark text-white font-display text-2xl py-4 rounded-2xl active:scale-95 transition-all shadow-md"
         >
-          {canAfford ? 'Maybe later' : '← Go Back'}
+          {isPending ? 'Back to shop' : canAfford ? 'Maybe later' : '← Go Back'}
         </button>
       </div>
     </div>

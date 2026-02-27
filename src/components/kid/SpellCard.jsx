@@ -2,6 +2,20 @@ import { useState, useEffect, useRef } from 'react'
 import { speak, spellAloud } from '../../utils/tts'
 import { playLetterCorrect, playLetterIncorrect } from '../../utils/sounds'
 
+// Splits arr into rows of at most maxPerRow, distributing evenly so
+// no row ever ends up with a single orphan item.
+function chunkBalanced(arr, maxPerRow) {
+  const n = arr.length
+  if (n <= maxPerRow) return [arr]
+  const rows = Math.ceil(n / maxPerRow)
+  const perRow = Math.ceil(n / rows)
+  const chunks = []
+  for (let i = 0; i < n; i += perRow) {
+    chunks.push(arr.slice(i, i + perRow))
+  }
+  return chunks
+}
+
 // phase: 'spelling' | 'success' | 'failReveal'
 
 export default function SpellCard({ wordObj, threshold, onResult }) {
@@ -65,7 +79,7 @@ export default function SpellCard({ wordObj, threshold, onResult }) {
 
       const newCount = incorrectCount + 1
       setIncorrectCount(newCount)
-      if (newCount >= threshold) {
+      if (newCount > threshold) {
         setPhase('failReveal')
         doFailReveal()
       }
@@ -116,8 +130,8 @@ export default function SpellCard({ wordObj, threshold, onResult }) {
         </button>
       </div>
 
-      {/* Tile row */}
-      <div className="flex gap-2 mb-6 justify-center flex-wrap">
+      {/* Tile row — always single line */}
+      <div className="flex gap-2 mb-6 justify-center">
         {letters.map((letter, i) => {
           const isPlaced = i < placed.length
           const isRevealed = !isPlaced && revealed.includes(i)
@@ -153,22 +167,26 @@ export default function SpellCard({ wordObj, threshold, onResult }) {
 
       {/* Letter buttons */}
       {phase === 'spelling' && (
-        <div className="flex flex-wrap gap-3 justify-center max-w-xs">
-          {shuffledButtons.map((btn) => (
-            <button
-              key={btn.id}
-              onClick={() => handleLetterTap(btn)}
-              disabled={btn.used}
-              className={`w-14 h-14 rounded-2xl font-display text-2xl transition-all active:scale-90
-                ${btn.used
-                  ? 'bg-gray-100 text-gray-300 cursor-not-allowed'
-                  : 'bg-quinn-blue text-white shadow-md shadow-blue-200'
-                }
-                ${shakeLetter === btn.id ? 'animate-shake' : ''}
-              `}
-            >
-              {btn.letter}
-            </button>
+        <div className="flex flex-col items-center gap-3">
+          {chunkBalanced(shuffledButtons, 4).map((row, rowIdx) => (
+            <div key={rowIdx} className="flex gap-3 justify-center">
+              {row.map((btn) => (
+                <button
+                  key={btn.id}
+                  onClick={() => handleLetterTap(btn)}
+                  disabled={btn.used}
+                  className={`w-14 h-14 rounded-2xl font-display text-2xl transition-all active:scale-90
+                    ${btn.used
+                      ? 'bg-gray-100 text-gray-300 cursor-not-allowed'
+                      : 'bg-quinn-blue text-white shadow-md shadow-blue-200'
+                    }
+                    ${shakeLetter === btn.id ? 'animate-shake' : ''}
+                  `}
+                >
+                  {btn.letter}
+                </button>
+              ))}
+            </div>
           ))}
         </div>
       )}

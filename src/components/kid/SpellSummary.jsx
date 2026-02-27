@@ -3,8 +3,6 @@ import { db } from '../../firebase/config'
 import {
   doc,
   updateDoc,
-  setDoc,
-  getDoc,
   addDoc,
   collection,
   increment,
@@ -15,17 +13,13 @@ import { useTheme } from '../../contexts/ThemeContext'
 import confetti from 'canvas-confetti'
 import toast from 'react-hot-toast'
 
-function getTodayKey() {
-  return new Date().toISOString().split('T')[0]
-}
-
-export default function SpellSummary({ results, bonusMode, onPlayAgain, onClose }) {
+export default function SpellSummary({ results, onClose }) {
   const { user } = useAuth()
   const { theme } = useTheme()
   const savedRef = useRef(false)
 
   const correctCount = results.filter((r) => r.correct).length
-  const earned = correctCount // 1 Quinn Cash per correct word
+  const earned = correctCount
 
   useEffect(() => {
     if (savedRef.current) return
@@ -37,37 +31,15 @@ export default function SpellSummary({ results, bonusMode, onPlayAgain, onClose 
     if (earned === 0) return
 
     try {
-      const userRef = doc(db, 'users', user.uid)
+      await updateDoc(doc(db, 'users', user.uid), { balance: increment(earned) })
 
-      // Add to balance
-      await updateDoc(userRef, { balance: increment(earned) })
-
-      // Log transaction
       await addDoc(collection(db, 'users', user.uid, 'transactions'), {
         amount: earned,
         type: 'spellit',
-        note: `Spell It! — ${correctCount}/${results.length} words correct`,
+        note: `Spell it! — ${correctCount}/${results.length} words correct`,
         createdAt: serverTimestamp(),
       })
 
-      // Track daily earnings (only for regular sessions, not bonus)
-      if (!bonusMode) {
-        const today = getTodayKey()
-        const earningsId = `${user.uid}_${today}`
-        const earningsRef = doc(db, 'gameEarnings', earningsId)
-        const snap = await getDoc(earningsRef)
-        if (snap.exists()) {
-          await updateDoc(earningsRef, { totalEarned: increment(earned) })
-        } else {
-          await setDoc(earningsRef, {
-            userId: user.uid,
-            date: today,
-            totalEarned: earned,
-          })
-        }
-      }
-
-      // Confetti!
       confetti({
         particleCount: 120,
         spread: 70,
@@ -120,16 +92,10 @@ export default function SpellSummary({ results, bonusMode, onPlayAgain, onClose 
         ))}
       </div>
 
-      <div className="w-full max-w-xs space-y-3">
-        <button
-          onClick={onPlayAgain}
-          className="w-full bg-quinn-teal text-white font-display text-xl py-4 rounded-2xl active:scale-95 transition-all shadow-lg"
-        >
-          Play Again!
-        </button>
+      <div className="w-full max-w-xs">
         <button
           onClick={onClose}
-          className="w-full bg-gray-100 text-gray-500 font-body font-bold py-3 rounded-2xl active:scale-95 transition-all"
+          className="w-full bg-quinn-teal text-white font-display text-xl py-4 rounded-2xl active:scale-95 transition-all shadow-lg"
         >
           Back to Store
         </button>

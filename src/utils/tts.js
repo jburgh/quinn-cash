@@ -10,7 +10,7 @@ export function speak(text) {
 export function spellAloud(word) {
   if (!window.speechSynthesis) return
   window.speechSynthesis.cancel()
-  word.toUpperCase().split('').forEach((letter, i) => {
+  word.toLowerCase().split('').forEach((letter, i) => {
     setTimeout(() => {
       const u = new SpeechSynthesisUtterance(letter)
       u.rate = 0.7

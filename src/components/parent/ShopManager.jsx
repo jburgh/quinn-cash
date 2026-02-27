@@ -129,6 +129,7 @@ export default function ShopManager() {
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState(null)
   const [confirmDelete, setConfirmDelete] = useState(null)
+  const [search, setSearch] = useState('')
 
   useEffect(() => {
     const q = query(collection(db, 'prizes'), orderBy('createdAt', 'desc'))
@@ -181,6 +182,15 @@ export default function ShopManager() {
     }
   }
 
+  const handleToggleAvailable = async (prize) => {
+    try {
+      await updateDoc(doc(db, 'prizes', prize.id), { available: !prize.available })
+      toast.success(prize.available ? `"${prize.name}" hidden` : `"${prize.name}" restored!`)
+    } catch {
+      toast.error('Failed to update')
+    }
+  }
+
   const handleDelete = async (prize) => {
     try {
       await deleteDoc(doc(db, 'prizes', prize.id))
@@ -215,6 +225,15 @@ export default function ShopManager() {
         </div>
       )}
 
+      {prizes.length > 0 && (
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search prizes..."
+          className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 font-body text-sm focus:outline-none focus:border-quinn-blue mb-4"
+        />
+      )}
+
       {prizes.length === 0 && !showForm ? (
         <EmptyState
           emoji="🛍️"
@@ -223,12 +242,12 @@ export default function ShopManager() {
         />
       ) : (
         <div className="space-y-3">
-          {prizes.map((prize) => (
+          {prizes.filter((p) => p.name.toLowerCase().includes(search.toLowerCase())).map((prize) => (
             <div key={prize.id}>
               {editing?.id === prize.id ? (
                 <PrizeForm initial={prize} onSave={handleEdit} onCancel={() => setEditing(null)} />
               ) : (
-                <div className="bg-white rounded-2xl p-4 flex items-center gap-3 shadow-sm">
+                <div className={`bg-white rounded-2xl p-4 flex items-center gap-3 shadow-sm transition-opacity ${!prize.available ? 'opacity-60' : ''}`}>
                   <div className="w-14 h-14 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
                     {prize.photoURL ? (
                       <img
@@ -247,7 +266,7 @@ export default function ShopManager() {
                       <CoinIcon size="xs" /> {prize.price} &middot; {prize.type}
                     </p>
                     {!prize.available && (
-                      <span className="text-xs text-red-400 font-body font-bold">Sold out</span>
+                      <span className="text-xs text-gray-400 font-body font-bold">Hidden</span>
                     )}
                   </div>
 
@@ -267,16 +286,31 @@ export default function ShopManager() {
                       </button>
                     </div>
                   ) : (
-                    <div className="flex gap-2 flex-shrink-0">
+                    <div className="flex gap-1 flex-shrink-0">
+                      {prize.available ? (
+                        <button
+                          onClick={() => handleToggleAvailable(prize)}
+                          className="text-gray-500 font-body text-xs bg-gray-100 px-2 py-1 rounded-lg active:scale-95"
+                        >
+                          Hide
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleToggleAvailable(prize)}
+                          className="text-quinn-teal font-body text-xs bg-teal-50 px-2 py-1 rounded-lg active:scale-95 font-bold"
+                        >
+                          Restore
+                        </button>
+                      )}
                       <button
                         onClick={() => { setEditing(prize); setShowForm(false) }}
-                        className="text-quinn-blue font-body text-sm bg-blue-50 px-3 py-1.5 rounded-lg active:scale-95"
+                        className="text-quinn-blue font-body text-xs bg-blue-50 px-2 py-1 rounded-lg active:scale-95"
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => setConfirmDelete(prize.id)}
-                        className="text-red-400 font-body text-sm bg-red-50 px-3 py-1.5 rounded-lg active:scale-95"
+                        className="text-red-400 font-body text-xs bg-red-50 px-2 py-1 rounded-lg active:scale-95"
                       >
                         Del
                       </button>

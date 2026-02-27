@@ -15,9 +15,9 @@ function shuffle(arr) {
   return a
 }
 
-export default function SpellGame({ bonusMode, onClose }) {
-  const [words, setWords] = useState(null) // null = loading
-  const [settings, setSettings] = useState({ incorrectThreshold: 1, dailyCap: 5 })
+export default function SpellGame({ onClose }) {
+  const [words, setWords] = useState(null)
+  const [settings, setSettings] = useState({ incorrectThreshold: 1 })
   const [currentIdx, setCurrentIdx] = useState(0)
   const [results, setResults] = useState([])
   const [done, setDone] = useState(false)
@@ -28,14 +28,10 @@ export default function SpellGame({ bonusMode, onClose }) {
 
   const loadGame = async () => {
     try {
-      // Load settings
       const settingsSnap = await getDoc(doc(db, 'gameSettings', 'default'))
-      const s = settingsSnap.exists()
-        ? settingsSnap.data()
-        : { incorrectThreshold: 1, dailyCap: 5 }
+      const s = settingsSnap.exists() ? settingsSnap.data() : { incorrectThreshold: 1 }
       setSettings(s)
 
-      // Load active words
       const q = query(collection(db, 'wordList'), where('active', '==', true))
       const snap = await getDocs(q)
       const active = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
@@ -45,8 +41,7 @@ export default function SpellGame({ bonusMode, onClose }) {
         return
       }
 
-      const picked = shuffle(active).slice(0, WORDS_PER_ROUND)
-      setWords(picked)
+      setWords(shuffle(active).slice(0, WORDS_PER_ROUND))
       setCurrentIdx(0)
       setResults([])
       setDone(false)
@@ -68,11 +63,6 @@ export default function SpellGame({ bonusMode, onClose }) {
     }
   }
 
-  const handlePlayAgain = () => {
-    setWords(null)
-    loadGame()
-  }
-
   if (words === null) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
@@ -82,14 +72,7 @@ export default function SpellGame({ bonusMode, onClose }) {
   }
 
   if (done) {
-    return (
-      <SpellSummary
-        results={results}
-        bonusMode={bonusMode}
-        onPlayAgain={handlePlayAgain}
-        onClose={onClose}
-      />
-    )
+    return <SpellSummary results={results} onClose={onClose} />
   }
 
   const wordObj = words[currentIdx]
@@ -114,7 +97,7 @@ export default function SpellGame({ bonusMode, onClose }) {
         <div className="mt-3 h-2 bg-white/20 rounded-full overflow-hidden">
           <div
             className="h-full bg-white rounded-full transition-all duration-500"
-            style={{ width: `${((currentIdx) / words.length) * 100}%` }}
+            style={{ width: `${(currentIdx / words.length) * 100}%` }}
           />
         </div>
       </div>

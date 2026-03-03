@@ -124,7 +124,9 @@ export default function PrizeDetail({ prize, onClose, hasPending = false }) {
         <div
           ref={imgContainerRef}
           onClick={() => imgTransform.scale > 1 && applyTransform({ scale: 1, x: 0, y: 0 })}
-          className="w-44 h-44 rounded-3xl overflow-hidden mx-auto mb-5 bg-gray-100 shadow-md"
+          className={`w-44 h-44 rounded-3xl mx-auto mb-5 bg-gray-100 shadow-md relative ${
+            imgTransform.scale > 1 ? 'z-10' : 'overflow-hidden'
+          }`}
         >
           {prize.photoURL ? (
             <img

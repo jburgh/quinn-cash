@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { db } from '../../firebase/config'
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
+import { collection, addDoc, serverTimestamp, doc, updateDoc, increment } from 'firebase/firestore'
 import { useAuth } from '../../contexts/AuthContext'
 import { useApp } from '../../contexts/AppContext'
 import { useTheme } from '../../contexts/ThemeContext'
@@ -32,6 +32,15 @@ export default function PrizeDetail({ prize, onClose, hasPending = false }) {
         userId: user.uid,
         requestedAt: serverTimestamp(),
         status: 'pending',
+      })
+      await updateDoc(doc(db, 'users', user.uid), {
+        balance: increment(-prize.price),
+      })
+      await addDoc(collection(db, 'users', user.uid, 'transactions'), {
+        amount: -prize.price,
+        type: 'purchase',
+        note: `Requested: ${prize.name}`,
+        createdAt: serverTimestamp(),
       })
       playPrizeRequest()
       setRequested(true)

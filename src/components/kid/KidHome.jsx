@@ -30,7 +30,7 @@ export default function KidHome() {
   const [tab, setTab] = useState(0)
   const [prizes, setPrizes] = useState([])
   const [loadingPrizes, setLoadingPrizes] = useState(true)
-  const [pendingPrizeIds, setPendingPrizeIds] = useState(new Set())
+  const [pendingRequests, setPendingRequests] = useState([])
   const [selectedPrize, setSelectedPrize] = useState(null)
   const [showPINModal, setShowPINModal] = useState(false)
   const [showPINSetup, setShowPINSetup] = useState(false)
@@ -58,10 +58,13 @@ export default function KidHome() {
       where('userId', '==', user.uid)
     )
     const unsub = onSnapshot(q, (snap) => {
-      setPendingPrizeIds(new Set(snap.docs.map((d) => d.data().prizeId)))
+      setPendingRequests(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
     })
     return unsub
   }, [user])
+
+  const pendingPrizeIds = new Set(pendingRequests.map((r) => r.prizeId))
+  const pendingTotal = pendingRequests.reduce((sum, r) => sum + r.prizePrice, 0)
 
   // Watch for parent-launched spelling session
   useEffect(() => {
@@ -94,10 +97,21 @@ export default function KidHome() {
         <div className="flex items-center justify-between px-5 pt-5 pb-2">
           <div>
             <p className={theme.balanceLabelClass}>{theme.balanceLabel}</p>
-            <div className="flex items-center gap-3 mt-1">
-              <CurrencyIcon size="xl" />
-              <span className="font-display text-6xl leading-none">{balance}</span>
-            </div>
+            {pendingTotal > 0 ? (
+              <div className="flex items-center gap-2 mt-1 flex-wrap">
+                <CurrencyIcon size="xl" />
+                <span className="font-display text-6xl leading-none">{balance + pendingTotal}</span>
+                <span className="font-display text-6xl leading-none text-white/70">−</span>
+                <span className="font-display text-6xl leading-none text-red-400">{pendingTotal}</span>
+                <span className="font-display text-6xl leading-none text-white/70">=</span>
+                <span className="font-display text-6xl leading-none">{balance}</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3 mt-1">
+                <CurrencyIcon size="xl" />
+                <span className="font-display text-6xl leading-none">{balance}</span>
+              </div>
+            )}
           </div>
           <button
             onClick={handleParentButton}

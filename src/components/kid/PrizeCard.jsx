@@ -17,18 +17,23 @@ export default function PrizeCard({ prize, balance, onTap, hasPending = false })
           <img
             src={prize.photoURL}
             alt={prize.name}
-            className="w-full h-full object-cover"
+            className={`w-full h-full object-cover ${!canAfford ? 'opacity-40' : ''}`}
             loading="lazy"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-5xl">🎁</div>
+          <div className={`w-full h-full flex items-center justify-center text-5xl ${!canAfford ? 'opacity-40' : ''}`}>🎁</div>
+        )}
+        {!canAfford && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-6xl drop-shadow-lg">🔒</span>
+          </div>
         )}
         {hasPending && (
           <div className="absolute top-2 left-2 bg-yellow-400 text-yellow-900 text-xs font-body font-bold px-2 py-0.5 rounded-full">
             📬 Pending
           </div>
         )}
-        {prize.type === 'experience' && !hasPending && (
+        {prize.type === 'experience' && !hasPending && canAfford && (
           <div className="absolute top-2 right-2 bg-quinn-teal text-white text-xs font-body font-bold px-2 py-0.5 rounded-full">
             {theme.experienceBadge}
           </div>

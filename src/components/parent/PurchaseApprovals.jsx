@@ -13,7 +13,6 @@ import {
   increment,
 } from 'firebase/firestore'
 import { useAuth } from '../../contexts/AuthContext'
-import { useApp } from '../../contexts/AppContext'
 import { playApprove, playDecline } from '../../utils/sounds'
 import CoinIcon from '../common/CoinIcon'
 import toast from 'react-hot-toast'
@@ -21,7 +20,6 @@ import EmptyState from '../common/EmptyState'
 
 export default function PurchaseApprovals() {
   const { user } = useAuth()
-  const { balance } = useApp()
   const [requests, setRequests] = useState([])
   const [loading, setLoading] = useState(true)
   const [processing, setProcessing] = useState(null)
@@ -40,18 +38,11 @@ export default function PurchaseApprovals() {
   }, [])
 
   const handleApprove = async (req) => {
-    if (balance < req.prizePrice) {
-      toast.error(`Not enough Quinn Cash! Balance: ${balance}, Price: ${req.prizePrice}`)
-      return
-    }
     setProcessing(req.id)
     try {
       await updateDoc(doc(db, 'purchaseRequests', req.id), {
         status: 'approved',
         approvedAt: serverTimestamp(),
-      })
-      await updateDoc(doc(db, 'users', user.uid), {
-        balance: increment(-req.prizePrice),
       })
       await addDoc(collection(db, 'purchaseHistory'), {
         prizeId: req.prizeId,
@@ -60,12 +51,6 @@ export default function PurchaseApprovals() {
         price: req.prizePrice,
         purchasedAt: serverTimestamp(),
         userId: user.uid,
-      })
-      await addDoc(collection(db, 'users', user.uid, 'transactions'), {
-        amount: -req.prizePrice,
-        type: 'purchase',
-        note: `Purchased: ${req.prizeName}`,
-        createdAt: serverTimestamp(),
       })
       // Item-type prizes go unavailable after purchase
       if (req.prizeType === 'item') {
@@ -91,8 +76,17 @@ export default function PurchaseApprovals() {
         status: 'declined',
         declinedAt: serverTimestamp(),
       })
+      await updateDoc(doc(db, 'users', user.uid), {
+        balance: increment(req.prizePrice),
+      })
+      await addDoc(collection(db, 'users', user.uid, 'transactions'), {
+        amount: req.prizePrice,
+        type: 'refund',
+        note: `Declined: ${req.prizeName}`,
+        createdAt: serverTimestamp(),
+      })
       playDecline()
-      toast('Request declined', { icon: '👎' })
+      toast('Request declined — coins refunded', { icon: '👎' })
     } catch {
       toast.error('Failed to decline')
     } finally {
@@ -117,7 +111,6 @@ export default function PurchaseApprovals() {
       ) : (
         <div className="space-y-4">
           {requests.map((req) => {
-            const canAfford = balance >= req.prizePrice
             const isProcessing = processing === req.id
             return (
               <div key={req.id} className="bg-white rounded-2xl shadow-sm overflow-hidden">
@@ -141,14 +134,8 @@ export default function PurchaseApprovals() {
                       {req.prizeName}
                     </p>
                     <p className="font-body text-quinn-orange font-bold flex items-center gap-1"><CoinIcon size="xs" /> {req.prizePrice}</p>
-                    <p
-                      className={`font-body text-xs mt-0.5 flex items-center gap-1 ${
-                        canAfford ? 'text-green-500' : 'text-red-400'
-                      }`}
-                    >
-                      {canAfford
-                        ? <><CoinIcon size="xs" /> {balance} ✓</>
-                        : <>Needs <CoinIcon size="xs" /> {req.prizePrice - balance} more</>}
+                    <p className="font-body text-xs mt-0.5 text-green-500">
+                      Balance reserved ✓
                     </p>
                   </div>
                 </div>
@@ -163,7 +150,7 @@ export default function PurchaseApprovals() {
                   <div className="w-px bg-gray-100" />
                   <button
                     onClick={() => handleApprove(req)}
-                    disabled={isProcessing || !canAfford}
+                    disabled={isProcessing}
                     className="flex-1 py-4 font-body font-bold text-green-500 hover:bg-green-50 active:bg-green-100 transition-colors disabled:opacity-40"
                   >
                     {isProcessing ? '...' : 'Approve ✓'}

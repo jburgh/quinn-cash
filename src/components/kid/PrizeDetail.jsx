@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { db } from '../../firebase/config'
 import { collection, addDoc, serverTimestamp, doc, updateDoc, increment } from 'firebase/firestore'
 import { useAuth } from '../../contexts/AuthContext'
@@ -14,6 +14,56 @@ export default function PrizeDetail({ prize, onClose, hasPending = false }) {
   const CurrencyIcon = theme.CurrencyIcon
   const [loading, setLoading] = useState(false)
   const [requested, setRequested] = useState(false)
+
+  // Pinch-to-zoom
+  const imgContainerRef = useRef(null)
+  const transformRef = useRef({ scale: 1, x: 0, y: 0 })
+  const gestureRef = useRef({})
+  const [imgTransform, setImgTransform] = useState({ scale: 1, x: 0, y: 0 })
+
+  const applyTransform = (t) => {
+    transformRef.current = t
+    setImgTransform(t)
+  }
+
+  useEffect(() => {
+    const el = imgContainerRef.current
+    if (!el) return
+    const dist = (t) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY)
+    const mid = (t) => ({ x: (t[0].clientX + t[1].clientX) / 2, y: (t[0].clientY + t[1].clientY) / 2 })
+
+    const onStart = (e) => {
+      if (e.touches.length === 2) {
+        gestureRef.current = {
+          startScale: transformRef.current.scale,
+          startDist: dist(e.touches),
+          startX: transformRef.current.x,
+          startY: transformRef.current.y,
+          ...mid(e.touches),
+        }
+      }
+    }
+    const onMove = (e) => {
+      if (e.touches.length !== 2) return
+      e.preventDefault()
+      const g = gestureRef.current
+      const newScale = Math.min(5, Math.max(1, g.startScale * dist(e.touches) / g.startDist))
+      const m = mid(e.touches)
+      applyTransform({ scale: newScale, x: g.startX + m.x - g.x, y: g.startY + m.y - g.y })
+    }
+    const onEnd = () => {
+      if (transformRef.current.scale < 1.05) applyTransform({ scale: 1, x: 0, y: 0 })
+    }
+
+    el.addEventListener('touchstart', onStart, { passive: true })
+    el.addEventListener('touchmove', onMove, { passive: false })
+    el.addEventListener('touchend', onEnd, { passive: true })
+    return () => {
+      el.removeEventListener('touchstart', onStart)
+      el.removeEventListener('touchmove', onMove)
+      el.removeEventListener('touchend', onEnd)
+    }
+  }, [])
 
   const canAfford = balance >= prize.price
   const diff = Math.abs(balance - prize.price)
@@ -71,11 +121,32 @@ export default function PrizeDetail({ prize, onClose, hasPending = false }) {
         </button>
 
         {/* Image */}
-        <div className="w-44 h-44 rounded-3xl overflow-hidden mx-auto mb-5 bg-gray-100 shadow-md">
+        <div
+          ref={imgContainerRef}
+          onClick={() => imgTransform.scale > 1 && applyTransform({ scale: 1, x: 0, y: 0 })}
+          className="w-44 h-44 rounded-3xl overflow-hidden mx-auto mb-5 bg-gray-100 shadow-md"
+        >
           {prize.photoURL ? (
-            <img src={prize.photoURL} alt={prize.name} className="w-full h-full object-cover" />
+            <img
+              src={prize.photoURL}
+              alt={prize.name}
+              draggable={false}
+              className="w-full h-full object-cover select-none"
+              style={{
+                transform: `translate(${imgTransform.x}px, ${imgTransform.y}px) scale(${imgTransform.scale})`,
+                transformOrigin: 'center',
+                transition: imgTransform.scale === 1 ? 'transform 0.25s ease' : 'none',
+              }}
+            />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-7xl">🎁</div>
+            <div
+              className="w-full h-full flex items-center justify-center text-7xl select-none"
+              style={{
+                transform: `translate(${imgTransform.x}px, ${imgTransform.y}px) scale(${imgTransform.scale})`,
+                transformOrigin: 'center',
+                transition: imgTransform.scale === 1 ? 'transform 0.25s ease' : 'none',
+              }}
+            >🎁</div>
           )}
         </div>
 

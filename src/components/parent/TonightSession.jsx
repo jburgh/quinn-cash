@@ -19,6 +19,13 @@ import toast from 'react-hot-toast'
 
 const TOTAL_COINS = 3
 
+async function launchSpellingGame() {
+  await setDoc(doc(db, 'bonusSessionTrigger', 'global'), {
+    triggered: true,
+    triggeredAt: serverTimestamp(),
+  })
+}
+
 function getTodayKey() {
   return new Date().toISOString().split('T')[0]
 }
@@ -31,6 +38,7 @@ export default function TonightSession() {
   const [session, setSession] = useState(null)
   const [loading, setLoading] = useState(true)
   const [banking, setBanking] = useState(false)
+  const [launching, setLaunching] = useState(false)
 
   const todayKey = getTodayKey()
   const sessionId = `${user.uid}_${todayKey}`
@@ -81,11 +89,6 @@ export default function TonightSession() {
     const revokedCoins = session?.revokedCoins || []
     const remaining = TOTAL_COINS - revokedCoins.length
 
-    if (remaining === 0) {
-      toast("All coins were revoked — nothing to bank!", { icon: '😅' })
-      return
-    }
-
     setBanking(true)
     try {
       const ref = doc(db, 'sessions', sessionId)
@@ -106,33 +109,48 @@ export default function TonightSession() {
 
       setSession((prev) => ({ ...prev, banked: true, coinsBanked: remaining }))
 
-      // Confetti burst
-      confetti({
-        particleCount: 160,
-        spread: 80,
-        origin: { y: 0.6 },
-        colors: theme.confettiColors,
-      })
-      setTimeout(
-        () =>
-          confetti({
-            particleCount: 80,
-            spread: 110,
-            origin: { y: 0.45 },
-            colors: theme.confettiColors,
-          }),
-        350
-      )
-
-      theme.bankSound()
-      toast.success(`Quinn earned ${remaining} Quinn Cash tonight! 🎉`, {
-        duration: 5000,
-        style: { fontSize: '16px' },
-      })
+      if (remaining > 0) {
+        theme.bankSound()
+        confetti({
+          particleCount: 160,
+          spread: 80,
+          origin: { y: 0.6 },
+          colors: theme.confettiColors,
+        })
+        setTimeout(
+          () =>
+            confetti({
+              particleCount: 80,
+              spread: 110,
+              origin: { y: 0.45 },
+              colors: theme.confettiColors,
+            }),
+          350
+        )
+        toast.success(`Quinn earned ${remaining} Quinn Cash tonight! 🎉`, {
+          duration: 5000,
+          style: { fontSize: '16px' },
+        })
+      } else {
+        toast("Session finished — no coins earned tonight.", { icon: '😴' })
+      }
     } catch {
       toast.error('Something went wrong!')
     } finally {
       setBanking(false)
+    }
+  }
+
+  const handleLaunchSpelling = async () => {
+    if (launching) return
+    setLaunching(true)
+    try {
+      await launchSpellingGame()
+      toast.success('Spelling game launched on the kid screen!')
+    } catch {
+      toast.error('Failed to launch spelling game')
+    } finally {
+      setLaunching(false)
     }
   }
 
@@ -168,12 +186,16 @@ export default function TonightSession() {
 
       {isBanked ? (
         <div className="text-center py-8">
-          <div className="text-7xl mb-5 animate-bounce-slow">{theme.celebrationEmoji}</div>
-          <h3 className="font-display text-3xl text-quinn-teal mb-3">{theme.celebrationTitle}</h3>
+          <div className="text-7xl mb-5 animate-bounce-slow">{session.coinsBanked > 0 ? theme.celebrationEmoji : '😴'}</div>
+          <h3 className="font-display text-3xl text-quinn-teal mb-3">{session.coinsBanked > 0 ? theme.celebrationTitle : 'Session Done'}</h3>
           <p className="font-body text-gray-500 text-lg mb-2">
-            Quinn earned{' '}
-            <span className="font-bold text-quinn-orange inline-flex items-center gap-1"><CurrencyIcon size="sm" /> {session.coinsBanked}</span> Quinn Cash
-            tonight!
+            {session.coinsBanked > 0 ? (
+              <>Quinn earned{' '}
+              <span className="font-bold text-quinn-orange inline-flex items-center gap-1"><CurrencyIcon size="sm" /> {session.coinsBanked}</span> Quinn Cash
+              tonight!</>
+            ) : (
+              'No coins earned this session.'
+            )}
           </p>
           <p className="font-body text-gray-400 text-sm mb-8">
             Come back tomorrow for a new session.
@@ -229,7 +251,15 @@ export default function TonightSession() {
             disabled={banking}
             className="w-full bg-quinn-orange hover:bg-quinn-orange-dark text-white font-display text-3xl py-6 rounded-3xl active:scale-95 transition-all shadow-xl shadow-orange-200 disabled:opacity-50"
           >
-            {banking ? 'Banking...' : theme.bankLabel}
+            {banking ? 'Banking...' : remaining === 0 ? 'Finish Session (0 coins)' : theme.bankLabel}
+          </button>
+
+          <button
+            onClick={handleLaunchSpelling}
+            disabled={launching}
+            className="w-full mt-3 bg-quinn-teal text-white font-display text-xl py-4 rounded-2xl active:scale-95 transition-all shadow-lg shadow-teal-200 disabled:opacity-50"
+          >
+            {launching ? 'Launching...' : '🔤 Launch Spelling Game'}
           </button>
         </>
       )}

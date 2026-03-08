@@ -9,7 +9,7 @@ export default function PrizeCard({ prize, balance, onTap, hasPending = false })
   return (
     <button
       onClick={() => onTap(prize)}
-      className={`bg-white rounded-3xl shadow-md overflow-hidden active:scale-95 transition-transform text-left w-full ${canAfford && !hasPending ? theme.affordableRing : ''}`}
+      className={`bg-white rounded-3xl shadow-md overflow-hidden active:scale-95 transition-transform text-left w-full ${canAfford && !hasPending ? theme.affordableRing : ''} ${!canAfford ? 'opacity-90' : ''}`}
     >
       {/* Image */}
       <div className="aspect-square bg-gray-100 relative overflow-hidden">

@@ -35,7 +35,7 @@ export default function KidHome() {
   const [showPINModal, setShowPINModal] = useState(false)
   const [showPINSetup, setShowPINSetup] = useState(false)
   const [showGame, setShowGame] = useState(false)
-  const [sort, setSort] = useState('newest')
+  const [sort, setSort] = useState('cheapest')
 
   useEffect(() => {
     const q = query(
